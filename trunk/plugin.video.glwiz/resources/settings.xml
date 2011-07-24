@@ -1,0 +1,6 @@
+<settings>
+   <setting id="paid_account" type="bool" label="Paid Account" default="false"/>
+   <setting id="username" type="text"  label="Username" default="" enable="eq(-1,true)"/>
+   <setting id="password" type="text"  label="Password" default="" enable="eq(-2,true)"/>
+   <setting id="show_thumbnail" type="bool" label="Show glwiz.com Thumbnails" default="true"/>   
+</settings>
