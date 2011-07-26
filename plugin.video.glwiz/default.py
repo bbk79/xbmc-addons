@@ -43,8 +43,6 @@ def getCategories():
 			for li in categories:
 				name = li.contents[0].strip()
 				dirurl = pattern.search(li['onclick']).groups()[0]
-				if dirurl == '-1':
-					pass
 				dirurl = 'http://www.glwiz.com/ajax.aspx?channel=tv&genre=' + dirurl
 				addDir(name,dirurl,1)			
 		except:
@@ -85,7 +83,7 @@ def getChannels(url):
 			itemurl = 'http://www.glwiz.com/' + pattern.search(span['onclick']).groups()[0]
 			if __settings__.getSetting('show_thumbnail') == "true":
 				thumbnail = span.contents[0]['src']
-			name = span.contents[1].strip()	
+			name = span.contents[len(span) - 1].strip()	
 			response = opener.open(itemurl)
 			link=response.read()
 			itemurl =link.replace('http://','mms://')
