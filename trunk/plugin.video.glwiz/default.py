@@ -17,30 +17,60 @@ if __settings__.getSetting('paid_account') == "true":
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
+def login():
+	resp = opener.open('http://www.glwiz.com/')
+	html_data = resp.read();
+	soup = BeautifulSoup(html_data)
+	eventVal = soup.find('input',id='__EVENTVALIDATION',type='hidden')
+	viewState = soup.find('input',id='__VIEWSTATE',type='hidden')
+	loginURL = 'http://www.glwiz.com/homepage.aspx?__EVENTARGUMENT=&__EVENTTARGET=&__EVENTVALIDATION=%s&__VIEWSTATE=%s&pageHeader%%24ScriptManager1=pageHeader%%24UpdatePanel1%%7CpageHeader%%24buttonLogin&pageHeader%%24buttonLogin=%%20&pageHeader%%24txtPassword=%s&pageHeader%%24txtUsername=%s' % (urllib.quote(eventVal['value']), urllib.quote(viewState['value']), urllib.quote(__settings__.getSetting('password')), urllib.quote(__settings__.getSetting('username')))
+	opener.open(loginURL)
+	resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tvlist&type=reg&genre=1')
+	html_data = resp.read();
+	return html_data != 'NoAccess'	
+
 def getCategories():
-        try:
-		resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tv&type=free&genre=1')
-		html_data = resp.read();
-		soup = BeautifulSoup(html_data)
-		categories = soup.find('ul',id='listContainerTopMenu')
-		for li in categories:
-			name = li.contents[0]
-			dirurl = li['onclick'].replace('makeHttpRequest(\'','http://www.glwiz.com/').replace('&\',channelListShow,false)', '')
-			addDir(name,dirurl,1)
-	except:
-        	        return
+	if __settings__.getSetting('paid_account') == "true":
+		while not login():
+        	        xbmc.executebuiltin("XBMC.Notification('GLWiZ','INVALID username and/or password.',30000,"+icon+")")
+	                __settings__.openSettings()
+		try:
+			resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tvlist&type=reg&genre=1')
+			html_data = resp.read();
+			soup = BeautifulSoup(html_data)
+			categories = soup.find('ul',id='categoryContainer')
+			pattern = re.compile('tvChannelsStart\(\'(.*?)\'\);')
+			for li in categories:
+				name = li.contents[0].strip()
+				dirurl = pattern.search(li['onclick']).groups()[0]
+				if dirurl == '-1':
+					pass
+				dirurl = 'http://www.glwiz.com/ajax.aspx?channel=tv&genre=' + dirurl
+				addDir(name,dirurl,1)			
+		except:
+			return
+	else:
+		try:
+			resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tv&type=free&genre=1')
+			html_data = resp.read();
+			soup = BeautifulSoup(html_data)
+			categories = soup.find('ul',id='listContainerTopMenu')
+			pattern = re.compile('\&genre=(.*?)\&')
+			for li in categories:
+				name = li.contents[0].strip()
+				dirurl = 'http://www.glwiz.com/ajax.aspx?channel=tv&genre=' + pattern.search(li['onclick']).groups()[0]
+				addDir(name,dirurl,1)
+		except:
+			return
                         
 def getChannels(url):
-
 	if __settings__.getSetting('paid_account') == "true":
-		resp = opener.open('http://www.glwiz.com/')
-		html_data = resp.read();
-		soup = BeautifulSoup(html_data)
-		eventVal = soup.find('input',id='__EVENTVALIDATION',type='hidden')
-		viewState = soup.find('input',id='__VIEWSTATE',type='hidden')
-
-		loginURL = 'http://www.glwiz.com/homepage.aspx?__EVENTARGUMENT=&__EVENTTARGET=&__EVENTVALIDATION=%s&__VIEWSTATE=%s&pageHeader%%24ScriptManager1=pageHeader%%24UpdatePanel1%%7CpageHeader%%24buttonLogin&pageHeader%%24buttonLogin=%%20&pageHeader%%24txtPassword=%s&pageHeader%%24txtUsername=%s' % (urllib.quote(eventVal['value']), urllib.quote(viewState['value']), urllib.quote(__settings__.getSetting('password')), urllib.quote(__settings__.getSetting('username')))
-		opener.open(loginURL)
+		while not login():
+        	        xbmc.executebuiltin("XBMC.Notification('GLWiZ','INVALID username and/or password.',30000,"+icon+")")
+	                __settings__.openSettings()
+		url += '&type=reg'
+	else:
+		url += '&type=free'
 
 	resp = opener.open(url)
 	inner_data = resp.read();
@@ -48,17 +78,14 @@ def getChannels(url):
 	container = inner_soup.find('div',id='listContainerScroll')
 
 	thumbnail = "DefaultVideo.png"
+	pattern = pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
 
 	for span in container:
 		try:
-			itemurl = span['onclick'].replace('setRadio(false);makeHttpRequest(\'ajax.aspx?stream=live&type=free&ppoint=', 'http://www.glwiz.com/ajax.aspx?stream=live&ppoint=').replace('&\',initPlayMedia,false)','')
+			itemurl = 'http://www.glwiz.com/' + pattern.search(span['onclick']).groups()[0]
 			if __settings__.getSetting('show_thumbnail') == "true":
 				thumbnail = span.contents[0]['src']
-			name = span.contents[1]	
-			if __settings__.getSetting('paid_account') == "true":
-				itemurl += '&type=reg'
-			else:
-				itemurl += '&type=free'
+			name = span.contents[1].strip()	
 			response = opener.open(itemurl)
 			link=response.read()
 			itemurl =link.replace('http://','mms://')
@@ -118,10 +145,6 @@ try:
         mode=int(params["mode"])
 except:
         pass
-
-print "Mode: "+str(mode)
-print "URL: "+str(url)
-print "Name: "+str(name)
 
 if mode==None:
         print ""

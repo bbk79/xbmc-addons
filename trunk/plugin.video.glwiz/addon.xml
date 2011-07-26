@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.glwiz"
        name="GLWiZ"
-       version="0.0.2"
+       version="0.0.3"
        provider-name="babak">
   <requires>
     <import addon="xbmc.python" version="1.0"/>
@@ -13,7 +13,7 @@
   </extension>
   <extension point="xbmc.addon.metadata">
     <summary>GLWiZ</summary>
-    <description>GLWiZ Addon for XBMC, based on Live Streams</description>
+    <description>GLWiZ Addon for XBMC</description>
     <platform>all</platform>
   </extension>
 </addon>
