@@ -5,6 +5,9 @@ from BeautifulSoup import BeautifulStoneSoup, BeautifulSoup, BeautifulSOAP
 addon = xbmcaddon.Addon('plugin.video.glwiz')
 profile = xbmc.translatePath(addon.getAddonInfo('profile'))
 
+sys.path.append(os.path.join(addon.getAddonInfo('path'), 'resources'))
+import urllib3, workerpool
+
 __settings__ = xbmcaddon.Addon(id='plugin.video.glwiz')
 home = __settings__.getAddonInfo('path')
 icon = xbmc.translatePath( os.path.join( home, 'icon.png' ) )
@@ -61,6 +64,28 @@ def getCategories():
 		except:
 			return
                         
+class FetchJob(workerpool.Job):
+        def __init__(self, span, pattern, http):
+                self.span = span
+                self.pattern = pattern
+                self.http = http
+
+        def run(self):
+                try:
+                        itemurl = 'http://www.glwiz.com/' + self.pattern.search(self.span['onclick']).groups()[0]
+                        if __settings__.getSetting('show_thumbnail') == "true":
+                                thumbnail = self.span.contents[0]['src']
+                        name = self.span.contents[len(self.span) - 1].strip()
+                        response = opener.open(itemurl)
+                        
+                        r = self.http.request('GET', itemurl)
+                        link = r.data
+
+			addLink(itemurl,name,thumbnail)
+
+                except:
+                        pass
+
 def getChannels(url):
 	if __settings__.getSetting('paid_account') == "true":
 		while not login():
@@ -78,18 +103,17 @@ def getChannels(url):
 	thumbnail = "DefaultVideo.png"
 	pattern = pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
 
-	for span in container:
-		try:
-			itemurl = 'http://www.glwiz.com/' + pattern.search(span['onclick']).groups()[0]
-			if __settings__.getSetting('show_thumbnail') == "true":
-				thumbnail = span.contents[0]['src']
-			name = span.contents[len(span) - 1].strip()	
-			response = opener.open(itemurl)
-			link=response.read()
-			itemurl =link.replace('http://','mms://')
-	                addLink(itemurl,name,thumbnail)
-		except:
-			pass
+        NUM_SOCKETS = 5
+        NUM_WORKERS = 8
+
+        http = urllib3.PoolManager(maxsize=NUM_SOCKETS)
+        workers = workerpool.WorkerPool(size=NUM_WORKERS)
+
+        for span in container:
+                workers.put(FetchJob(span, pattern, http))
+
+        workers.shutdown()
+        workers.wait()
 
 def get_params():
         param=[]
