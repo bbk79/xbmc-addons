@@ -81,6 +81,7 @@ class FetchJob(workerpool.Job):
                         r = self.http.request('GET', itemurl)
                         link = r.data
 
+			itemurl = link.replace('http://','mms://')
 			addLink(itemurl,name,thumbnail)
 
                 except:
