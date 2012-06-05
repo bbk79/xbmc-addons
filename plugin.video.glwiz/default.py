@@ -22,14 +22,14 @@ opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
 def login():
 	resp = opener.open('http://www.glwiz.com/')
-	html_data = resp.read();
+	html_data = resp.read()
 	soup = BeautifulSoup(html_data)
 	eventVal = soup.find('input',id='__EVENTVALIDATION',type='hidden')
 	viewState = soup.find('input',id='__VIEWSTATE',type='hidden')
 	loginURL = 'http://www.glwiz.com/homepage.aspx?__EVENTARGUMENT=&__EVENTTARGET=&__EVENTVALIDATION=%s&__VIEWSTATE=%s&pageHeader%%24ScriptManager1=pageHeader%%24UpdatePanel1%%7CpageHeader%%24buttonLogin&pageHeader%%24buttonLogin=%%20&pageHeader%%24txtPassword=%s&pageHeader%%24txtUsername=%s' % (urllib.quote(eventVal['value']), urllib.quote(viewState['value']), urllib.quote(__settings__.getSetting('password')), urllib.quote(__settings__.getSetting('username')))
 	opener.open(loginURL)
 	resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tvlist&type=reg&genre=1')
-	html_data = resp.read();
+	html_data = resp.read()
 	return html_data != 'NoAccess'	
 
 def getCategories():
@@ -39,7 +39,7 @@ def getCategories():
 	                __settings__.openSettings()
 		try:
 			resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tvlist&type=reg&genre=1')
-			html_data = resp.read();
+			html_data = resp.read()
 			soup = BeautifulSoup(html_data)
 			categories = soup.find('ul',id='categoryContainer')
 			pattern = re.compile('tvChannelsStart\(\'(.*?)\'\);')
@@ -53,7 +53,7 @@ def getCategories():
 	else:
 		try:
 			resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tv&type=free&genre=1')
-			html_data = resp.read();
+			html_data = resp.read()
 			soup = BeautifulSoup(html_data)
 			categories = soup.find('ul',id='listContainerTopMenu')
 			pattern = re.compile('\&genre=(.*?)\&')
@@ -65,27 +65,29 @@ def getCategories():
 			return
                         
 class FetchJob(workerpool.Job):
-        def __init__(self, span, pattern, http):
+        def __init__(self, span, pattern, http, cookies):
                 self.span = span
                 self.pattern = pattern
                 self.http = http
+		self.cookies = cookies
 
         def run(self):
-                try:
+
+		try:
                         itemurl = 'http://www.glwiz.com/' + self.pattern.search(self.span['onclick']).groups()[0]
                         if __settings__.getSetting('show_thumbnail') == "true":
                                 thumbnail = self.span.contents[0]['src']
                         name = self.span.contents[len(self.span) - 1].strip()
-                        response = opener.open(itemurl)
                         
-                        r = self.http.request('GET', itemurl)
+			myheaders = {'Cookie' : self.cookies}
+                        r = self.http.request('GET', itemurl, headers=myheaders)
                         link = r.data
 
 			itemurl = link.replace('http://','mms://')
 			addLink(itemurl,name,thumbnail)
 
-                except:
-                        pass
+		except:
+			pass
 
 def getChannels(url):
 	if __settings__.getSetting('paid_account') == "true":
@@ -97,21 +99,25 @@ def getChannels(url):
 		url += '&type=free'
 
 	resp = opener.open(url)
-	inner_data = resp.read();
+	inner_data = resp.read()
 	inner_soup = BeautifulSoup(inner_data)
 	container = inner_soup.find('div',id='listContainerScroll')
 
 	thumbnail = "DefaultVideo.png"
 	pattern = pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
 
-        NUM_SOCKETS = 5
-        NUM_WORKERS = 8
+        NUM_SOCKETS = 4
+        NUM_WORKERS = 6
 
         http = urllib3.PoolManager(maxsize=NUM_SOCKETS)
         workers = workerpool.WorkerPool(size=NUM_WORKERS)
 
+        cookies = ''
+	for cookie in cj:
+                cookies += cookie.name + '=' + cookie.value + ';'
+
         for span in container:
-                workers.put(FetchJob(span, pattern, http))
+                workers.put(FetchJob(span, pattern, http, cookies))
 
         workers.shutdown()
         workers.wait()
