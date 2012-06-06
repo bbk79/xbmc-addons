@@ -154,7 +154,7 @@ def addLink(url,name,iconimage):
         liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
         liz.setInfo( type="Video", infoLabels={ "Title": name } )
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz)
-        return ok
+	return ok
 
             
 params=get_params()
@@ -183,4 +183,5 @@ elif mode==1:
         print ""+url
         getChannels(url)
         
+xbmcplugin.addSortMethod(handle=int(sys.argv[1]), sortMethod=xbmcplugin.SORT_METHOD_LABEL)
 xbmcplugin.endOfDirectory(int(sys.argv[1]))

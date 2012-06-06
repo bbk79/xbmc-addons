@@ -178,4 +178,5 @@ elif mode==1:
         print ""+url
         getChannels(url)
         
+xbmcplugin.addSortMethod(handle=int(sys.argv[1]), sortMethod=xbmcplugin.SORT_METHOD_LABEL)
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
