@@ -1,4 +1,4 @@
-import urllib,urllib2,re,os,cookielib
+import urllib,urllib2,re,os,cookielib,datetime,random
 import xbmcplugin,xbmcgui,xbmcaddon
 from BeautifulSoup import BeautifulStoneSoup, BeautifulSoup, BeautifulSOAP
 
@@ -19,6 +19,10 @@ if __settings__.getSetting('paid_account') == "true":
 
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+
+def randomRef():
+	now = datetime.datetime.now()
+	return str(now.second + now.minute * 60 + now.hour * 3600 + now.day * 86400) + str(random.randint(1000,9999))
 
 def login():
 	resp = opener.open('http://www.glwiz.com/')
@@ -79,7 +83,7 @@ class FetchJob(workerpool.Job):
                                 thumbnail = self.span.contents[0]['src']
                         name = self.span.contents[len(self.span) - 1].strip()
                         
-			myheaders = {'Cookie' : self.cookies}
+			myheaders = {'Cookie' : self.cookies, 'Referer' : 'http://www.glwiz.com/homepage.aspx'}
                         r = self.http.request('GET', itemurl, headers=myheaders)
                         link = r.data
 
