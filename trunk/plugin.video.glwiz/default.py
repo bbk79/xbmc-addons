@@ -20,10 +20,6 @@ if __settings__.getSetting('paid_account') == "true":
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
-def randomRef():
-	now = datetime.datetime.now()
-	return str(now.second + now.minute * 60 + now.hour * 3600 + now.day * 86400) + str(random.randint(1000,9999))
-
 def login():
 	resp = opener.open('http://www.glwiz.com/')
 	html_data = resp.read()
