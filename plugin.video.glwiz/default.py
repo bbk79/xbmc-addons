@@ -12,11 +12,11 @@ __settings__ = xbmcaddon.Addon(id='plugin.video.glwiz')
 __language__ = __settings__.getLocalizedString
 
 home = __settings__.getAddonInfo('path')
-icon = xbmc.translatePath( os.path.join( home, 'icon.png' ) )
+icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 
 if __settings__.getSetting('paid_account') == "true":
         if (__settings__.getSetting('username') == "") or (__settings__.getSetting('password') == ""):
-                xbmc.executebuiltin("XBMC.Notification(__settings__.getAddonInfo('name'),__language__(30000),30000,"+icon+")")
+                xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30000) + ",30000,"+icon+")")
                 __settings__.openSettings()
 
 cj = cookielib.CookieJar()
@@ -37,7 +37,7 @@ def login():
 def getCategories():
 	if __settings__.getSetting('paid_account') == "true":
 		while not login():
-        	        xbmc.executebuiltin("XBMC.Notification(__settings__.getAddonInfo('name'),__language__(30001),30000,"+icon+")")
+			xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",30000,"+icon+")")
 	                __settings__.openSettings()
 		try:
 			resp = opener.open('http://www.glwiz.com/ajax.aspx?channel=tvlist&type=reg&genre=1')
@@ -94,7 +94,7 @@ class FetchJob(workerpool.Job):
 def getChannels(url):
 	if __settings__.getSetting('paid_account') == "true":
 		while not login():
-        	        xbmc.executebuiltin("XBMC.Notification(__settings__.getAddonInfo('name'),__language__(30001),30000,"+icon+")")
+			xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",30000,"+icon+")")
 	                __settings__.openSettings()
 		url += '&type=reg'
 	else:
