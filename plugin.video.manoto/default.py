@@ -12,6 +12,12 @@ __language__ = __settings__.getLocalizedString
 home = __settings__.getAddonInfo('path')
 icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 
+listitem = xbmcgui.ListItem('Manoto 1 - Live')
+listitem.setInfo('video', {'Title': 'Manoto 1 - Live', 'Genre': 'TV'})
+listitem.setThumbnailImage(icon)
+listitem.setProperty('IsLive', 'true')
+
+
 if (__settings__.getSetting('username') == "") or (__settings__.getSetting('password') == ""):
 	xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30000) + ",10000,"+icon+")")
 	__settings__.openSettings()
@@ -53,13 +59,15 @@ def loginAndPlay():
 	if stream is None or stream['src'] is None:
 		return False
 	
-	listitem = xbmcgui.ListItem('Manoto 1 - Live')
-	listitem.setInfo('video', {'Title': 'Manoto 1 - Live', 'Genre': 'TV'})
-	listitem.setThumbnailImage(icon)
-	xbmc.Player( xbmc.PLAYER_CORE_MPLAYER ).play(stream['src'], listitem, False)
+	listitem.setPath(stream['src'])
+	xbmc.Player().play(stream['src'], listitem, False)
 
 	return True
 
-while not loginAndPlay():
-        xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",10000,"+icon+")")
-        __settings__.openSettings()
+if sys.argv[0].endswith('play'):
+	while not loginAndPlay():
+        	xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",10000,"+icon+")")
+        	__settings__.openSettings()
+else:
+	xbmcplugin.addDirectoryItem(int(sys.argv[1]), sys.argv[0] + 'play', listitem)
+	xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
