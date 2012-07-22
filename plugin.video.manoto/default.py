@@ -21,7 +21,7 @@ opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
 domain = 'www.manoto1.com'
 
-def loginAndParse():
+def loginAndPlay():
 	url = 'http://' + domain + '/live'
 	
 	if not cj:
@@ -53,18 +53,13 @@ def loginAndParse():
 	if stream is None or stream['src'] is None:
 		return False
 	
-	addLink(stream['src'], 'Manoto 1 - Live', icon) 
-	xbmcplugin.endOfDirectory(int(sys.argv[1]))
-	
+	listitem = xbmcgui.ListItem('Manoto 1 - Live')
+	listitem.setInfo('video', {'Title': 'Manoto 1 - Live', 'Genre': 'TV'})
+	listitem.setThumbnailImage(icon)
+	xbmc.Player( xbmc.PLAYER_CORE_MPLAYER ).play(stream['src'], listitem, False)
+
 	return True
 
-def addLink(url,name,iconimage):
-        ok=True
-        liz=xbmcgui.ListItem(name, iconImage="DefaultVideo.png", thumbnailImage=iconimage)
-        liz.setInfo( type="Video", infoLabels={ "Title": name } )
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url=url,listitem=liz)
-	return ok
-
-while not loginAndParse():
+while not loginAndPlay():
         xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",10000,"+icon+")")
         __settings__.openSettings()
