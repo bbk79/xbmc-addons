@@ -1,4 +1,4 @@
-import urllib,urllib2,re,os,cookielib
+import urllib,urllib2,re,os,cookielib,string
 import xbmcplugin,xbmcgui,xbmcaddon
 from BeautifulSoup import BeautifulSoup
 
@@ -12,11 +12,6 @@ __language__ = __settings__.getLocalizedString
 home = __settings__.getAddonInfo('path')
 icon = xbmc.translatePath(os.path.join(home, 'icon.png'))
 
-listitem = xbmcgui.ListItem('Manoto 1 - Live')
-listitem.setInfo('video', {'Title': 'Manoto 1 - Live', 'Genre': 'TV'})
-listitem.setThumbnailImage(icon)
-listitem.setProperty('IsLive', 'true')
-
 
 if (__settings__.getSetting('username') == "") or (__settings__.getSetting('password') == ""):
 	xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30000) + ",10000,"+icon+")")
@@ -27,7 +22,52 @@ opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
 domain = 'www.manoto1.com'
 
-def loginAndPlay():
+# Thanks to micahg!
+def getStreamsFromPlayList(playlist):
+	"""
+        Get the streams from the playlist
+        
+        @param playlist: The playlist URI
+        """
+        # create the request
+        req = urllib2.Request(playlist)
+
+        # request the games        
+        try:
+        	resp = urllib2.urlopen(req)
+        except urllib2.URLError, ue:
+        	print("URL error trying to open playlist")
+        	return None
+        except urllib2.HTTPError, he:
+        	print("HTTP error trying to open playlist")
+        	return None
+        
+        # store the base URI from the playlist
+        prefix=playlist[0:string.rfind(playlist,'/') + 1]
+        lines = string.split(resp.read(), '\n')
+
+        # parse the playlist file
+        streams = {}
+        bandwidth = ""
+        for line in lines:
+            
+        	# skip the first line
+        	if line == "#EXTM3U":
+        		continue
+            
+        	# is this a description or a playlist
+        	idx = string.find(line, "BANDWIDTH=")
+        	if idx > -1:
+        		# handle the description
+        		bandwidth = line[idx + 10:len(line)].strip()
+        	elif len(line) > 0 and len(bandwidth) > 0:
+        		# add the playlist
+        		streams[bandwidth] = (prefix + line).strip()
+
+	return streams
+
+
+def loginAndParse():
 	url = 'http://' + domain + '/live'
 	
 	if not cj:
@@ -59,15 +99,33 @@ def loginAndPlay():
 	if stream is None or stream['src'] is None:
 		return False
 	
-	listitem.setPath(stream['src'])
-	xbmc.Player().play(stream['src'], listitem, False)
+	streams = getStreamsFromPlayList(stream['src'])
+	
+ 	if streams == None:
+ 		xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
+		return False
+    
+    	bitrates = []
+    	for k in streams.keys():
+        	bitrates.append(int(k))
+	bitrates.sort()
+    	bitrates.reverse()
+
+    	for bitrate in bitrates:
+        	stream_id = str(bitrate)
+        	title = str(int(bitrate) / int(1000)) + " Kbps"
+        	li = xbmcgui.ListItem(title)
+        	li.setInfo( type="Video", infoLabels={"Title" : title})
+		li.setThumbnailImage(icon)
+        	xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),
+                	                    url=streams[stream_id],
+                        	            listitem=li,
+	                                    isFolder=False)
+
+    	xbmcplugin.endOfDirectory(handle=int(sys.argv[1]))
 
 	return True
 
-if sys.argv[0].endswith('play'):
-	while not loginAndPlay():
-        	xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",10000,"+icon+")")
-        	__settings__.openSettings()
-else:
-	xbmcplugin.addDirectoryItem(int(sys.argv[1]), sys.argv[0] + 'play', listitem)
-	xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=True)
+while not loginAndParse():
+       	xbmc.executebuiltin("XBMC.Notification(" + __settings__.getAddonInfo('name') + "," + __language__(30001) + ",10000,"+icon+")")
+       	__settings__.openSettings()
