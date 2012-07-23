@@ -15,5 +15,6 @@
     <summary>GLArab</summary>
     <description>GLArab Addon for XBMC - requires the GLArab plugin (proxy) on the local network.</description>
     <platform>all</platform>
+    <language>ar</language>
   </extension>
 </addon>
