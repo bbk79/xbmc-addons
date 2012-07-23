@@ -15,5 +15,6 @@
     <summary>Manoto TV</summary>
     <description>Manoto TV Addon for XBMC</description>
     <platform>all</platform>
+    <language>fa</language>
   </extension>
 </addon>
