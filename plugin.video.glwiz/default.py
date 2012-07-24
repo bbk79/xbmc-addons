@@ -85,6 +85,9 @@ class FetchJob(workerpool.Job):
                         r = self.http.request('GET', itemurl, headers=myheaders)
                         link = r.data
 
+			if __settings__.getSetting('paid_account') == "false":
+				link = urllib.unquote(link).rsplit('&c=')[1]
+
 			itemurl = link.replace('http://','mms://')
 			addLink(itemurl,name,thumbnail)
 
