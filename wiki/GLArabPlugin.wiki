@@ -8,7 +8,7 @@ view their streams. The proxy software is available for both Windows and Mac fro
 http://www.glarab.com website.
 
 
- * *Can I use this plugin with XBMC on the Apple TV?*
+ * *Can I use this plugin with XBMC on the Apple TV, Raspberry Pi, ...?*
 Yes and No.
 
 As mentioned in the previous FAQ, GLArab requires a proxy to be downloaded and installed on a machine that 
@@ -23,6 +23,5 @@ The above solution will require that your machine with the GLArab proxy software
 
  * *I have the proxy installed on a Windows machine and have configured the IP address in plugin settings, it still doesn't work.*
 
-On Windows, get _glarab_http_proxy-1.4.0.5571.exe._ Newer versions don't support non-local connections according to some users.
-
-Also make sure your firewall allows incoming TCP connections on port 4500.
+ # On Windows, get _glarab_http_proxy-1.4.0.5571.exe._ Newer versions don't support non-local connections according to some users.
+ # Make sure your firewall allows incoming TCP connections on port 4500.
