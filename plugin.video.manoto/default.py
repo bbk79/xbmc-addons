@@ -42,7 +42,6 @@ def getStreamsFromPlayList(playlist):
         	print("HTTP error trying to open playlist")
         	return None
         
-        # store the base URI from the playlist
         lines = string.split(resp.read(), '\n')
 
         # parse the playlist file
