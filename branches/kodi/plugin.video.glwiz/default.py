@@ -77,7 +77,12 @@ class FetchJob(workerpool.Job):
         def run(self):
 
 		try:
-                        itemurl = 'http://www.glwiz.com/' + self.pattern.search(self.span['onclick']).groups()[0]
+        		if __settings__.getSetting('paid_account') == "true":
+				itemurl = 'http://www.glwiz.com/'
+			else:
+				itemurl = 'http://www.glwiz.com/ajax.aspx?stream=live&type=free&ppoint='
+
+                        itemurl += self.pattern.search(self.span['onclick']).groups()[0]
                         if __settings__.getSetting('show_thumbnail') == "true":
                                 thumbnail = self.span.contents[0]['src']
                         name = self.span.contents[len(self.span) - 1].strip()
@@ -110,7 +115,10 @@ def getChannels(url):
 	container = inner_soup.find('div',id='listContainerScroll')
 
 	thumbnail = "DefaultVideo.png"
-	pattern = pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
+        if __settings__.getSetting('paid_account') == "true":
+		pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
+	else:
+		pattern = re.compile("\homepage.aspx\?chn\=(.*?)\&")
 
         NUM_SOCKETS = 4
         NUM_WORKERS = 6
