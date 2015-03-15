@@ -22,6 +22,15 @@ if __settings__.getSetting('paid_account') == "true":
 cj = cookielib.CookieJar()
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
+
+try:
+	resp = opener.open('http://www.glwiz.com/js/glapi.ashx')
+	html_data = resp.read()
+	pattern = re.compile('"X-hello-data",\s?"(.*?)"')
+	xhellodata = pattern.search(html_data).groups()[0]
+except:
+	xhellodata = ''
+
 def login():
 	resp = opener.open('http://www.glwiz.com/')
 	html_data = resp.read()
@@ -77,19 +86,23 @@ class FetchJob(workerpool.Job):
         def run(self):
 
 		try:
-                        itemurl = 'http://www.glwiz.com/' + self.pattern.search(self.span['onclick']).groups()[0]
+        		if __settings__.getSetting('paid_account') == "true":
+				itemurl = 'http://www.glwiz.com/'
+			else:
+				itemurl = 'http://www.glwiz.com/ajax.aspx?stream=live&type=free&ppoint='
+
+                        itemurl += self.pattern.search(self.span['onclick']).groups()[0]
                         if __settings__.getSetting('show_thumbnail') == "true":
                                 thumbnail = self.span.contents[0]['src']
                         name = self.span.contents[len(self.span) - 1].strip()
                         
-			myheaders = {'Cookie' : self.cookies, 'User-Agent' : 'XBMC', 'Referer' : 'http://www.glwiz.com/homepage.aspx'}
+			myheaders = {'Cookie' : self.cookies, 'User-Agent' : 'XBMC', 'Referer' : 'http://www.glwiz.com/homepage.aspx', 'X-hello-data' : xhellodata}
                         r = self.http.request('GET', itemurl, headers=myheaders)
-                        link = r.data
+                        itemurl = urllib.unquote(r.data)
 
-			if urllib.unquote(link).find('&c=') != -1:
-				link = urllib.unquote(link).split('&c=')[1]
+			if itemurl.find('&c=') != -1:
+				itemurl = itemurl.split('&c=')[1]
 
-			itemurl = link.replace('http://','mms://')
 			addLink(itemurl,name,thumbnail)
 
 		except:
@@ -110,7 +123,10 @@ def getChannels(url):
 	container = inner_soup.find('div',id='listContainerScroll')
 
 	thumbnail = "DefaultVideo.png"
-	pattern = pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
+        if __settings__.getSetting('paid_account') == "true":
+		pattern = re.compile("\makeHttpRequest\(\'(.*?)\&\',")
+	else:
+		pattern = re.compile("\homepage.aspx\?chn\=(.*?)\&")
 
         NUM_SOCKETS = 4
         NUM_WORKERS = 6
