@@ -1,5 +1,10 @@
 # GLArab XBMC plugin #
 
+## Arabic Add-on Repository ##
+GLArab is now part of _hadynz's_ Arabic add-on repository, install it via the repository to take advantage of automatic updates and other great add-ons _hadynz_ puts together.
+
+https://github.com/hadynz/repository.arabic.xbmc-addons
+
 ## F.A.Q. ##
 
 ---
