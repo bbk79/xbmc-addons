@@ -16,5 +16,6 @@
     <description>GLWiZ Addon for XBMC</description>
     <platform>all</platform>
     <language>fa az hy tr</language>
+    <broken>deprecated, no longer maintained</broken>
   </extension>
 </addon>
