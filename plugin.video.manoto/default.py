@@ -20,9 +20,9 @@ def main():
          title = "Manoto TV ({quality})".format(quality=streams[bitrate][0])
          li = xbmcgui.ListItem(title)
          try:
-              li.setThumbnailImage(icons[streams[bitrate][2]])
+              li.setArt({'thumb': icons[streams[bitrate][2]]})
          except IndexError:
-              li.setThumbnailImage(icon)
+              li.setArt({'thumb': icon})
          xbmcplugin.addDirectoryItem(handle=addon_handle, url=streams[bitrate][1], listitem=li, isFolder=False)
 
     xbmcplugin.endOfDirectory(addon_handle)
