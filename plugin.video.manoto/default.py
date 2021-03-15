@@ -1,18 +1,19 @@
-import xbmc, xbmcgui, os, xbmcaddon, xbmcplugin
-import urllib2, re
+from builtins import next
+import xbmc, xbmcgui, os, xbmcaddon, xbmcplugin, urllib.request, urllib.error, urllib.parse, re
 
 def main():
     __settings__ = xbmcaddon.Addon()
     home = __settings__.getAddonInfo('path')
+    resources = os.path.join(home, 'resources')
     addon_handle = int(sys.argv[1])
 
     icons = {}
-    icons['Auto'] = xbmc.translatePath(os.path.join(home, 'icon.png'))
-    icons['720'] = xbmc.translatePath(os.path.join(home, 'hd.png'))
-    icons['1080'] = xbmc.translatePath(os.path.join(home, 'fhd.png'))
+    icons['Auto'] = xbmcvfs.translatePath(os.path.join(resources, 'icon.png'))
+    icons['720'] = xbmcvfs.translatePath(os.path.join(resources, 'hd.png'))
+    icons['1080'] = xbmcvfs.translatePath(os.path.join(resources, 'fhd.png'))
 
     streams = getStreamsFromPlayList()
-    bitrates = streams.keys()
+    bitrates = list(streams.keys())
     bitrates.sort()
     bitrates.reverse()
 
@@ -31,13 +32,13 @@ def getStreamsFromPlayList():
     base_url = "https://d2rwmwucnr0d10.cloudfront.net/"
     url = "{base_url}live.m3u8".format(base_url = base_url)
     try:
-        resp = urllib2.urlopen(url)
-    except urllib2.URLError:
+        resp = urllib.request.urlopen(url)
+    except urllib.error.URLError:
         return None
-    except urllib2.HTTPError:
+    except urllib.error.HTTPError:
         return None
 
-    lines = resp.read().split('\n')
+    lines = resp.read().decode('utf-8').split('\n')
 
     streams = {}
     lines_iter = iter(lines)
@@ -54,7 +55,7 @@ def getStreamsFromPlayList():
                 itemUrl = "{base_url}{item}".format(base_url=base_url, item=next(lines_iter))
                 streams[bandwidth] = (title, itemUrl, yRes)
 
-    streams['Auto'] = ('Auto', url, 'Auto')
+    streams[max(streams.keys()) + 1] = ('Auto', url, 'Auto')
     return streams
 
 if __name__ == '__main__':
